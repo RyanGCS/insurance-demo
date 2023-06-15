@@ -49,7 +49,7 @@ class ActionGetQuote(Action):
         domain: Dict[Text, Any],
     ) -> List[Dict]:
         """Executes the action"""
-        slots = ["AA_quote_insurance_type", "quote_state", "quote_number_persons", "number", "state","first_name", "last_name", "date_of_birth" , "zipcode","address_city","address_state","address_street","address_zip","full_Address"]
+        slots = ["AA_quote_insurance_type", "quote_state", "quote_number_persons", "number", "state","first_name", "last_name", "date_of_birth" , "zipcode","address_city","address_state","address_street","address_zip"]
 
         # Build the quote from the provided data.
         insurance_type = tracker.get_slot("AA_quote_insurance_type")
@@ -65,7 +65,7 @@ class ActionGetQuote(Action):
         address_state = tracker.get_slot("address_state")
         address_street = tracker.get_slot("address_street")
         address_zip = tracker.get_slot("address_zip")
-        full_address = tracker.get_slot("full_Address")
+
 
         msg_params = {
             "final_quote": final_quote,
@@ -80,7 +80,7 @@ class ActionGetQuote(Action):
             "address_state": address_state,
             "address_street": address_street,
             "address_zip": address_zip,
-            "full_Address": full_address
+
         }
         dispatcher.utter_message(template="utter_final_quote", **msg_params)
 
@@ -284,19 +284,6 @@ class ValidateQuoteForm(FormValidationAction):
             return {"address_zip": None}
         return {"address_zip": value}
 
-    def validate_full_Address(
-        self,
-        value: Text,
-        dispatcher: CollectingDispatcher,
-        tracker: Tracker,
-        domain: Dict[Text, Any],
-    ) -> Dict[Text, Any]:
-        """Validate the full address provided by the user."""
-        # You may need custom logic here depending on how you are handling full addresses
-        if not value:
-            dispatcher.utter_message("The address you entered is not valid. Please provide a valid address.")
-            return {"full_Address": None}
-        return {"full_Address": value}
 
 class ActionStopQuote(Action):
     """Stops quote form and clears collected data."""
@@ -312,7 +299,7 @@ class ActionStopQuote(Action):
         domain: Dict[Text, Any],
     ) -> List[Dict]:
         """Executes the action"""
-        slots = ["AA_quote_insurance_type", "quote_state", "quote_number_persons", "first_name", "last_name","date_of_birth", "zipcode","address_city","address_state","address_street","address_zip","full_Address"]
+        slots = ["AA_quote_insurance_type", "quote_state", "quote_number_persons", "first_name", "last_name","date_of_birth", "zipcode","address_city","address_state","address_street","address_zip"]
 
         # Reset the slot values.
         return [SlotSet(slot, None) for slot in slots]

@@ -346,7 +346,6 @@ responses:
       Address_State: {address_state}
       Address_Street: {address_street}
       Address_Zip: {address_zip}
-      Full_Address: {full_address}
   utter_greet:
   - buttons:
     - payload: /claim_status
@@ -517,9 +516,7 @@ forms:
       address_zip:
       - not_intent: stop
         type: from_text
-      full_address:
-      - not_intent: stop
-        type: from_text
+
 
   get_claim_form:
     required_slots:
