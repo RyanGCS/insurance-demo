@@ -1054,6 +1054,7 @@ def claims_scroll(curr_page, scroll_status):
         if curr_page > 0:
             curr_page -= 1
 
+
     # Get claims on the page.
     page_claims = MOCK_DATA["claims"][curr_page]
     clm_params = {
