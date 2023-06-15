@@ -51,11 +51,16 @@ entities:
 - state
 - ordinal
 - phone-number
-- date_of_birth
 - first_name
 - last_name
+- date_of_birth
 - zipcode
 slots:
+  date_of_birth:
+    type: rasa.shared.core.slots.AnySlot
+    initial_value: null
+    auto_fill: true
+    influence_conversation: false
   address_city:
     type: rasa.shared.core.slots.AnySlot
     initial_value: null
@@ -156,11 +161,6 @@ slots:
     initial_value: null
     auto_fill: true
     influence_conversation: false
-  date_of_birth:
-    type: rasa.shared.core.slots.AnySlot
-    initial_value: null
-    auto_fill: true
-    influence_conversation: false
   recent_claims:
     type: rasa.shared.core.slots.AnySlot
     initial_value: null
@@ -212,7 +212,6 @@ slots:
     auto_fill: true
     influence_conversation: true
 
-
 responses:
   utter_ask_address_street:
   - text: What is your mailing street number and name?
@@ -220,12 +219,12 @@ responses:
   - text: What city do you live in?
   utter_ask_address_state:
   - text: What state do you live in?
-  utter_ask_date_of_birth:
-  - text: What is your date of birth?
   utter_ask_address_zip:
   - text: What is your mailing zip code?
   utter_ask_file_new_claim_form_claim_amount_submit:
   - text: How much are you claiming?
+  utter_ask_date_of_birth:
+  - text: What is your date of birth?
   utter_ask_file_new_claim_form_confirm_file_new_claim:
   - buttons:
     - payload: /affirm
@@ -338,9 +337,9 @@ responses:
       Insurance Type: {insurance_type}
       Policy State: {quote_state}
       Number of people on policy: {n_persons}
-      Date of Birth: {date_of_birth}
       First_Name: {first_name}
       Second_Name: {last_name}
+      Date of Birth: {date_of_birth}
       Zipcode: {zipcode}
   utter_greet:
   - buttons:
@@ -434,6 +433,7 @@ responses:
   - text: Certainly. I can help you update your address. Let's look at the address on file.
   utter_start_new_quote:
   - text: I can help you get a new insurance quote. Let's learn a little more about you.
+
 actions:
 - validate_quote_form
 - action_get_quote
@@ -480,11 +480,6 @@ forms:
         type: from_entity
       - not_intent: stop
         type: from_text
-      date_of_birth:
-      - entity: date_of_birth
-        type: from_entity
-      - not_intent: stop
-        type: from_text
       first_name:
       - entity: name
         type: from_entity
@@ -492,6 +487,11 @@ forms:
         type: from_text
       last_name:
       - entity: name
+        type: from_entity
+      - not_intent: stop
+        type: from_text
+      date_of_birth:
+      - entity: date_of_birth
         type: from_entity
       - not_intent: stop
         type: from_text

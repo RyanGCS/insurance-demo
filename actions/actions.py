@@ -19,6 +19,7 @@ from rasa_sdk import Tracker
 from rasa_sdk.executor import CollectingDispatcher
 from rasa_sdk.forms import FormValidationAction
 from rasa_sdk.types import DomainDict
+import re
 
 
 logger = logging.getLogger(__name__)
@@ -46,22 +47,28 @@ class ActionGetQuote(Action):
         domain: Dict[Text, Any],
     ) -> List[Dict]:
         """Executes the action"""
-        slots = ["AA_quote_insurance_type", "quote_state", "quote_number_persons", "date_of_birth", "number", "state"]
+        slots = ["AA_quote_insurance_type", "quote_state", "quote_number_persons", "number", "state","first_name", "last_name", "date_of_birth" , "zipcode"]
 
         # Build the quote from the provided data.
         insurance_type = tracker.get_slot("AA_quote_insurance_type")
         n_persons = int(tracker.get_slot("quote_number_persons"))
-        date_of_birth = str(tracker.get_slot("date_of_birth"))
 
         baseline_rate = MOCK_DATA["policy_quote"]["insurance_type"][insurance_type]
         final_quote = baseline_rate * n_persons
+        first_name = tracker.get_slot("first_name")
+        last_name = tracker.get_slot("last_name")
+        zipcode = tracker.get_slot("zipcode")
+        date_of_birth = str(tracker.get_slot("date_of_birth"))
 
         msg_params = {
             "final_quote": final_quote,
             "insurance_type": insurance_type.capitalize(),
             "quote_state": tracker.get_slot("quote_state"),
             "n_persons": n_persons,
-            "date_of_birth": date_of_birth
+            "first_name": first_name,
+            "last_name": last_name,
+            "date_of_birth": date_of_birth,
+            "zipcode": zipcode
         }
         dispatcher.utter_message(template="utter_final_quote", **msg_params)
 
@@ -118,6 +125,7 @@ class ValidateQuoteForm(FormValidationAction):
         """Validates the number of persons entered is valid."""
         if tracker.get_intent_of_latest_message() == "stop":
             return {"quote_number_persons": None}
+
         try:
             int(value)
         except TypeError:
@@ -132,6 +140,42 @@ class ValidateQuoteForm(FormValidationAction):
             return {"quote_number_persons": None}
 
         return {"quote_number_persons": value}
+
+    def validate_first_name(
+            self,
+            value: Text,
+            dispatcher: CollectingDispatcher,
+            tracker: Tracker,
+            domain: Dict[Text, Any]
+    ) -> Dict[Text, Any]:
+
+        """Validates the name of person"""
+        first_name = tracker.get_slot('first_name')
+
+        #check if the name is valid
+        if first_name and not re.match("^[a-zA-Z ]+$", first_name):
+            dispatcher.utter_message("The name you entered is not valid. Please provide a name that contains only alphabetic characters.")
+            return {"first_name": None}  # if the name is invalid, set it back to None
+
+        return {"first_name": value}
+
+    def validate_second_name(
+            self,
+            value: Text,
+            dispatcher: CollectingDispatcher,
+            tracker: Tracker,
+            domain: Dict[Text, Any]
+    ) -> Dict[Text, Any]:
+
+        """Validates the name of person"""
+        second_name = tracker.get_slot('second_name')
+
+        #check if the name is valid
+        if second_name and not re.match("^[a-zA-Z ]+$", second_name):
+            dispatcher.utter_message("The name you entered is not valid. Please provide a name that contains only alphabetic characters.")
+            return {"second_name": None}  # if the name is invalid, set it back to None
+
+        return {"second_name": value}
 
     def validate_date_of_birth(
             self,
@@ -157,7 +201,26 @@ class ValidateQuoteForm(FormValidationAction):
             return {"date_of_birth": None}
 
         return {"date_of_birth": value}
-    
+
+    def validate_zipcode(
+            self,
+            value: Text,
+            dispatcher: CollectingDispatcher,
+            tracker: Tracker,
+            domain: Dict[Text, Any]
+    ) -> Dict[Text, Any]:
+
+        """Validates the name of person"""
+        zipcode = tracker.get_slot('zipcode')
+
+        #check if the name is valid
+        if len(zipcode) != 5 and zipcode.isdigit()==False:
+            dispatcher.utter_message(text="That doesn't look like a valid U.S. zipcode. Please enter a 5-digit zipcode.")
+            return {"zipcode": None}
+
+
+        return {"zipcode": value}
+
 
 class ActionStopQuote(Action):
     """Stops quote form and clears collected data."""
@@ -173,7 +236,7 @@ class ActionStopQuote(Action):
         domain: Dict[Text, Any],
     ) -> List[Dict]:
         """Executes the action"""
-        slots = ["AA_quote_insurance_type", "quote_state", "quote_number_persons", "date_of_birth"]
+        slots = ["AA_quote_insurance_type", "quote_state", "quote_number_persons", "first_name", "last_name","date_of_birth", "zipcode"]
 
         # Reset the slot values.
         return [SlotSet(slot, None) for slot in slots]
