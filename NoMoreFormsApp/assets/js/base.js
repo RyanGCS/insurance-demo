@@ -14,7 +14,7 @@ Talk.ready.then(function () {
     id: '654321',
     name: 'Jake From State Farm',
     email: 'Sebastian@example.com',
-    photoUrl: 'https://talkjs.com/images/avatar-5.jpg',
+    photoUrl: 'https://content.presspage.com/uploads/1441/1920_commercial-headshot.png?10000',
     welcomeMessage: 'Hey, how can I help?',
   });
 
