@@ -52,6 +52,9 @@ entities:
 - ordinal
 - phone-number
 - date_of_birth
+- first_name
+- last_name
+- zipcode
 slots:
   address_city:
     type: rasa.shared.core.slots.AnySlot
@@ -193,6 +196,23 @@ slots:
     initial_value: null
     auto_fill: true
     influence_conversation: true
+  first_name:
+    type: rasa.shared.core.slots.TextSlot
+    initial_value: null
+    auto_fill: true
+    influence_conversation: true
+  last_name:
+    type: rasa.shared.core.slots.TextSlot
+    initial_value: null
+    auto_fill: true
+    influence_conversation: true
+  zipcode:
+    type: rasa.shared.core.slots.TextSlot
+    initial_value: null
+    auto_fill: true
+    influence_conversation: true
+
+
 responses:
   utter_ask_address_street:
   - text: What is your mailing street number and name?
@@ -305,6 +325,12 @@ responses:
     text: |-
       Is this your current address?
       {full_address}
+  utter_ask_first_name:
+  - text: What is your first name?
+  utter_ask_last_name:
+  - text: What is your last name?
+  utter_ask_zipcode:
+  - text: What is your zipcode?
   utter_final_quote:
   - text: |-
       Your monthly payment given the information provided is: ${final_quote} per month
@@ -313,6 +339,13 @@ responses:
       Policy State: {quote_state}
       Number of people on policy: {n_persons}
       Date of Birth: {date_of_birth}
+      First_Name: {first_name}
+      Second_Name: {last_name}
+      Zipcode: {zipcode}
+      Address_City: {address_city}
+      Address_State: {address_state}
+      Address_Street: {address_street}
+      Address_Zip: {address_zip}
   utter_greet:
   - buttons:
     - payload: /claim_status
@@ -456,6 +489,35 @@ forms:
         type: from_entity
       - not_intent: stop
         type: from_text
+      first_name:
+      - entity: name
+        type: from_entity
+      - not_intent: stop
+        type: from_text
+      last_name:
+      - entity: name
+        type: from_entity
+      - not_intent: stop
+        type: from_text
+      zipcode:
+      - entity: zipcode
+        type: from_entity
+      - not_intent: stop
+        type: from_text
+      address_city:
+      - not_intent: stop
+        type: from_text
+      address_state:
+      - entity: state
+        type: from_entity
+      address_street:
+      - not_intent: stop
+        type: from_text
+      address_zip:
+      - not_intent: stop
+        type: from_text
+
+
   get_claim_form:
     required_slots:
       claim_id:
