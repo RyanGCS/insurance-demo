@@ -20,6 +20,8 @@ from rasa_sdk.executor import CollectingDispatcher
 from rasa_sdk.forms import FormValidationAction
 from rasa_sdk.types import DomainDict
 import re
+from datetime import datetime
+from dateutil.parser import parse
 
 
 logger = logging.getLogger(__name__)
@@ -47,7 +49,7 @@ class ActionGetQuote(Action):
         domain: Dict[Text, Any],
     ) -> List[Dict]:
         """Executes the action"""
-        slots = ["AA_quote_insurance_type", "quote_state", "quote_number_persons", "number", "state","first_name", "last_name", "date_of_birth" , "zipcode"]
+        slots = ["AA_quote_insurance_type", "quote_state", "quote_number_persons", "number", "state","first_name", "last_name", "date_of_birth" , "zipcode","address_city","address_state","address_street","address_zip","full_Address"]
 
         # Build the quote from the provided data.
         insurance_type = tracker.get_slot("AA_quote_insurance_type")
@@ -59,6 +61,11 @@ class ActionGetQuote(Action):
         last_name = tracker.get_slot("last_name")
         zipcode = tracker.get_slot("zipcode")
         date_of_birth = str(tracker.get_slot("date_of_birth"))
+        address_city = tracker.get_slot("address_city")
+        address_state = tracker.get_slot("address_state")
+        address_street = tracker.get_slot("address_street")
+        address_zip = tracker.get_slot("address_zip")
+        full_address = tracker.get_slot("full_Address")
 
         msg_params = {
             "final_quote": final_quote,
@@ -68,7 +75,12 @@ class ActionGetQuote(Action):
             "first_name": first_name,
             "last_name": last_name,
             "date_of_birth": date_of_birth,
-            "zipcode": zipcode
+            "zipcode": zipcode,
+            "address_city": address_city,
+            "address_state": address_state,
+            "address_street": address_street,
+            "address_zip": address_zip,
+            "full_Address": full_address
         }
         dispatcher.utter_message(template="utter_final_quote", **msg_params)
 
@@ -187,20 +199,20 @@ class ValidateQuoteForm(FormValidationAction):
         """Validates the date of birth entered is valid."""
         if tracker.get_intent_of_latest_message() == "stop":
             return {"date_of_birth": None}
+
+        dob = None
         try:
-            int(value)
-        except TypeError:
-            dispatcher.utter_message(f"Number of persons must be an integer.")
-            return {"date_of_birth": None}
-        except ValueError:
-            dispatcher.utter_message("You must answer with a number.")
+            dob = parse(value)
+        except Exception:
+            dispatcher.utter_message(
+                "I'm sorry, but I couldn't understand the date you provided. Can you try again in the format MM/DD/YYYY?")
             return {"date_of_birth": None}
 
-        if int(value) <= 0:
-            dispatcher.utter_message("Number of people on policy must be >= 1.")
+        if dob:
+            dob_str = dob.strftime('%m/%d/%Y')
+            return {"date_of_birth": dob_str}
+        else:
             return {"date_of_birth": None}
-
-        return {"date_of_birth": value}
 
     def validate_zipcode(
             self,
@@ -220,7 +232,71 @@ class ValidateQuoteForm(FormValidationAction):
 
 
         return {"zipcode": value}
+    def validate_address_city(
+        self,
+        value: Text,
+        dispatcher: CollectingDispatcher,
+        tracker: Tracker,
+        domain: Dict[Text, Any],
+    ) -> Dict[Text, Any]:
+        """Validate city address provided by the user."""
+        if value and not re.match("^[a-zA-Z ]+$", value):
+            dispatcher.utter_message("The city name you entered is not valid. Please provide a name that contains only alphabetic characters.")
+            return {"address_city": None}
+        return {"address_city": value}
 
+    def validate_address_state(
+        self,
+        value: Text,
+        dispatcher: CollectingDispatcher,
+        tracker: Tracker,
+        domain: Dict[Text, Any],
+    ) -> Dict[Text, Any]:
+        """Validate state address provided by the user."""
+        if value not in US_STATES:
+            dispatcher.utter_message(f"{value} is invalid. Please provide a valid state.")
+            return {"address_state": None}
+        return {"address_state": value}
+
+    def validate_address_street(
+        self,
+        value: Text,
+        dispatcher: CollectingDispatcher,
+        tracker: Tracker,
+        domain: Dict[Text, Any],
+    ) -> Dict[Text, Any]:
+        """Validate street address provided by the user."""
+        if not value:
+            dispatcher.utter_message("The street address you entered is not valid. Please provide a valid address.")
+            return {"address_street": None}
+        return {"address_street": value}
+
+    def validate_address_zip(
+        self,
+        value: Text,
+        dispatcher: CollectingDispatcher,
+        tracker: Tracker,
+        domain: Dict[Text, Any],
+    ) -> Dict[Text, Any]:
+        """Validate zip code for the address provided by the user."""
+        if len(value) != 5 or not value.isdigit():
+            dispatcher.utter_message("That doesn't look like a valid U.S. zipcode. Please enter a 5-digit zipcode.")
+            return {"address_zip": None}
+        return {"address_zip": value}
+
+    def validate_full_Address(
+        self,
+        value: Text,
+        dispatcher: CollectingDispatcher,
+        tracker: Tracker,
+        domain: Dict[Text, Any],
+    ) -> Dict[Text, Any]:
+        """Validate the full address provided by the user."""
+        # You may need custom logic here depending on how you are handling full addresses
+        if not value:
+            dispatcher.utter_message("The address you entered is not valid. Please provide a valid address.")
+            return {"full_Address": None}
+        return {"full_Address": value}
 
 class ActionStopQuote(Action):
     """Stops quote form and clears collected data."""
@@ -236,7 +312,7 @@ class ActionStopQuote(Action):
         domain: Dict[Text, Any],
     ) -> List[Dict]:
         """Executes the action"""
-        slots = ["AA_quote_insurance_type", "quote_state", "quote_number_persons", "first_name", "last_name","date_of_birth", "zipcode"]
+        slots = ["AA_quote_insurance_type", "quote_state", "quote_number_persons", "first_name", "last_name","date_of_birth", "zipcode","address_city","address_state","address_street","address_zip","full_Address"]
 
         # Reset the slot values.
         return [SlotSet(slot, None) for slot in slots]

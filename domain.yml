@@ -342,6 +342,11 @@ responses:
       First_Name: {first_name}
       Second_Name: {last_name}
       Zipcode: {zipcode}
+      Address_City: {address_city}
+      Address_State: {address_state}
+      Address_Street: {address_street}
+      Address_Zip: {address_zip}
+      Full_Address: {full_address}
   utter_greet:
   - buttons:
     - payload: /claim_status
@@ -500,6 +505,22 @@ forms:
         type: from_entity
       - not_intent: stop
         type: from_text
+      address_city:
+      - not_intent: stop
+        type: from_text
+      address_state:
+      - entity: state
+        type: from_entity
+      address_street:
+      - not_intent: stop
+        type: from_text
+      address_zip:
+      - not_intent: stop
+        type: from_text
+      full_address:
+      - not_intent: stop
+        type: from_text
+
   get_claim_form:
     required_slots:
       claim_id:
